@@ -10,33 +10,95 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProtectedRouteImport } from './routes/_protected'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProtectedDashboardRouteImport } from './routes/_protected.dashboard'
+import { Route as ProtectedHistoryRouteImport } from './routes/_protected.history'
+import { Route as ProtectedUploadRouteImport } from './routes/_protected.upload'
+import { Route as ProtectedScansIdRouteImport } from './routes/_protected.scans.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedRoute = ProtectedRouteImport.update({
+  id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedHistoryRoute = ProtectedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedUploadRoute = ProtectedUploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedScansIdRoute = ProtectedScansIdRouteImport.update({
+  id: '/scans/$id',
+  path: '/scans/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/dashboard': typeof ProtectedDashboardRoute
+  '/history': typeof ProtectedHistoryRoute
+  '/upload': typeof ProtectedUploadRoute
+  '/scans/$id': typeof ProtectedScansIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/dashboard': typeof ProtectedDashboardRoute
+  '/history': typeof ProtectedHistoryRoute
+  '/upload': typeof ProtectedUploadRoute
+  '/scans/$id': typeof ProtectedScansIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_protected': typeof ProtectedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_protected/dashboard': typeof ProtectedDashboardRoute
+  '/_protected/history': typeof ProtectedHistoryRoute
+  '/_protected/upload': typeof ProtectedUploadRoute
+  '/_protected/scans/$id': typeof ProtectedScansIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/login' | '/dashboard' | '/history' | '/upload' | '/scans/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/login' | '/dashboard' | '/history' | '/upload' | '/scans/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_protected'
+    | '/login'
+    | '/_protected/dashboard'
+    | '/_protected/history'
+    | '/_protected/upload'
+    | '/_protected/scans/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProtectedRoute: typeof ProtectedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +110,73 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/dashboard': {
+      id: '/_protected/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof ProtectedDashboardRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/history': {
+      id: '/_protected/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof ProtectedHistoryRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/upload': {
+      id: '/_protected/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof ProtectedUploadRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/scans/$id': {
+      id: '/_protected/scans/$id'
+      path: '/scans/$id'
+      fullPath: '/scans/$id'
+      preLoaderRoute: typeof ProtectedScansIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
+interface ProtectedRouteChildren {
+  ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedHistoryRoute: typeof ProtectedHistoryRoute
+  ProtectedUploadRoute: typeof ProtectedUploadRoute
+  ProtectedScansIdRoute: typeof ProtectedScansIdRoute
+}
+
+const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedHistoryRoute: ProtectedHistoryRoute,
+  ProtectedUploadRoute: ProtectedUploadRoute,
+  ProtectedScansIdRoute: ProtectedScansIdRoute,
+}
+
+const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
+  ProtectedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProtectedRoute: ProtectedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
