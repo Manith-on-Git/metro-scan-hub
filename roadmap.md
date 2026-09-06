@@ -1,0 +1,4 @@
+- [ ] Build reference-inspired enforcement portal shell and design tokens
+- [ ] Add single JWT API client using VITE_API_BASE
+- [ ] Implement login, protected dashboard, upload, scan result, and history workflows
+- [ ] Verify metadata, build, and live preview states
