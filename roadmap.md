@@ -2,3 +2,4 @@
 - [ ] Add single JWT API client using VITE_API_BASE
 - [ ] Implement login, protected dashboard, upload, scan result, and history workflows
 - [ ] Verify metadata, build, and live preview states
+- [ ] Add temporary demo mode with sample data for end-to-end portal walkthrough
