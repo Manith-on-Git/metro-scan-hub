@@ -31,4 +31,4 @@ function ScanResultPage() {
   </PageFrame>;
 }
 
-function Severity({ value }: { value?: string }) { const normalized = (value ?? "minor").toLowerCase(); const tone = normalized === "critical" ? "bg-critical/15 text-critical" : normalized === "major" ? "bg-major/15 text-major" : "bg-warning/20 text-warning"; return <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${tone}`}>{value ?? "Minor"}</span>; }
+function Severity({ value }: { value?: string | undefined }) { const normalized = (value ?? "minor").toLowerCase(); const tone = normalized === "critical" ? "bg-critical/15 text-critical" : normalized === "major" ? "bg-major/15 text-major" : "bg-warning/20 text-warning"; return <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${tone}`}>{value ?? "Minor"}</span>; }
