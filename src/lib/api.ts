@@ -76,9 +76,25 @@ const demoScans: ScanDetail[] = [
       { field_type: "Manufacturer", value: "Shakti Consumer Products", confidence: 0.84 },
     ],
     violations: [
-      { rule_ref: "LMR 2011 · 6(1)", field_type: "Manufacturer", description: "Complete address of the manufacturer is not declared on the principal display panel.", severity: "major" },
-      { rule_ref: "LMR 2011 · 6(1)", field_type: "MRP", description: "Maximum retail price does not include the applicable taxes wording.", severity: "critical" },
-      { rule_ref: "LMR 2011 · 6(2)", field_type: "Month / year", description: "Month and year of manufacture could not be verified.", severity: "minor" },
+      {
+        rule_ref: "LMR 2011 · 6(1)",
+        field_type: "Manufacturer",
+        description:
+          "Complete address of the manufacturer is not declared on the principal display panel.",
+        severity: "major",
+      },
+      {
+        rule_ref: "LMR 2011 · 6(1)",
+        field_type: "MRP",
+        description: "Maximum retail price does not include the applicable taxes wording.",
+        severity: "critical",
+      },
+      {
+        rule_ref: "LMR 2011 · 6(2)",
+        field_type: "Month / year",
+        description: "Month and year of manufacture could not be verified.",
+        severity: "minor",
+      },
     ],
   },
   {
@@ -109,7 +125,12 @@ const demoScans: ScanDetail[] = [
       { field_type: "MRP", value: "₹ 65", confidence: 0.91 },
     ],
     violations: [
-      { rule_ref: "LMR 2011 · 6(1)", field_type: "Net quantity", description: "The unit declaration is not displayed in the prescribed type size.", severity: "major" },
+      {
+        rule_ref: "LMR 2011 · 6(1)",
+        field_type: "Net quantity",
+        description: "The unit declaration is not displayed in the prescribed type size.",
+        severity: "major",
+      },
     ],
   },
 ];
@@ -165,7 +186,8 @@ async function request<T>(path: string, init: RequestInit = {}) {
 
 export async function login(email: string, password: string) {
   if (isDemoMode) {
-    if (!email.trim() || !password) throw new ApiError("Enter an email and password to continue.", 400);
+    if (!email.trim() || !password)
+      throw new ApiError("Enter an email and password to continue.", 400);
     const result: LoginResponse = { access_token: "demo-officer-token", token_type: "bearer" };
     setToken(result.access_token);
     return result;
@@ -229,10 +251,18 @@ export const api = {
         violation_count: 0,
         image_url: URL.createObjectURL(file),
         extracted_fields: [
-          { field_type: "Product name", value: file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), confidence: 0.94 },
+          {
+            field_type: "Product name",
+            value: file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "),
+            confidence: 0.94,
+          },
           { field_type: "Net quantity", value: "1 N", confidence: 0.9 },
           { field_type: "MRP", value: "₹ 249.00", confidence: 0.88 },
-          { field_type: "Packaged by", value: "Demo Consumer Products Pvt. Ltd.", confidence: 0.86 },
+          {
+            field_type: "Packaged by",
+            value: "Demo Consumer Products Pvt. Ltd.",
+            confidence: 0.86,
+          },
         ],
         ...(productId ? { product_id: productId } : {}),
       };
