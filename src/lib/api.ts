@@ -115,8 +115,10 @@ export async function login(email: string, password: string) {
 export const api = {
   getDashboardStats: () => request<DashboardStats>("/dashboard/stats"),
   getScans: async () => {
-    const result = await request<ScanSummary[] | { items?: ScanSummary[]; data?: ScanSummary[] }>("/scans/");
-    return Array.isArray(result) ? result : result.items ?? result.data ?? [];
+    const result = await request<ScanSummary[] | { items?: ScanSummary[]; data?: ScanSummary[] }>(
+      "/scans/",
+    );
+    return Array.isArray(result) ? result : (result.items ?? result.data ?? []);
   },
   getScan: (id: string) => request<ScanDetail>(`/scans/${encodeURIComponent(id)}`),
   uploadScan: async (file: File, productId?: string) => {
@@ -140,7 +142,8 @@ export const api = {
       if (typeof window !== "undefined") window.location.assign("/login");
       throw new ApiError("Your session has expired. Please sign in again.", 401);
     }
-    if (!response.ok) throw new ApiError("The PDF report could not be downloaded.", response.status);
+    if (!response.ok)
+      throw new ApiError("The PDF report could not be downloaded.", response.status);
     return response.blob();
   },
 };
