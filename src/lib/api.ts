@@ -1,6 +1,6 @@
 import { clearToken, getToken, setToken } from "@/lib/auth";
 
-const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
+const API_BASE = (import.meta.env["VITE_API_BASE"] ?? "").replace(/\/$/, "");
 
 export type LoginResponse = { access_token: string; token_type?: string };
 
@@ -23,7 +23,14 @@ export type ScanSummary = {
   product_id?: string;
 };
 
-export type ScanDetail = ScanSummary & {
+export type ScanViolation = {
+  rule_ref?: string;
+  field_type?: string;
+  description?: string;
+  severity?: string;
+};
+
+export type ScanDetail = Omit<ScanSummary, "violations"> & {
   image_url?: string;
   uploaded_image_url?: string;
   image?: string;
@@ -33,12 +40,7 @@ export type ScanDetail = ScanSummary & {
     value?: string | number | null;
     confidence?: number | null;
   }>;
-  violations?: Array<{
-    rule_ref?: string;
-    field_type?: string;
-    description?: string;
-    severity?: string;
-  }>;
+  violations?: ScanViolation[];
 };
 
 export class ApiError extends Error {
@@ -128,8 +130,10 @@ export const api = {
   },
   downloadReport: async (id: string) => {
     const token = getToken();
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
     const response = await fetch(endpoint(`/reports/${encodeURIComponent(id)}/pdf`), {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      headers,
     });
     if (response.status === 401) {
       clearToken();

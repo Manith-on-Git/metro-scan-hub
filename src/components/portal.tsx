@@ -67,7 +67,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function PageIntro({ eyebrow, title, description, action }: { eyebrow: string; title: string; description?: string; action?: ReactNode }) {
+export function PageIntro({ eyebrow, title, description, action }: { eyebrow: string; title: ReactNode; description?: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col gap-5 border-b border-line-strong pb-7 lg:flex-row lg:items-end lg:justify-between">
       <div>
