@@ -225,7 +225,6 @@ export const api = {
         id,
         created_at: new Date().toISOString(),
         status: "COMPLIANT",
-        product_id: productId,
         violations: [],
         violation_count: 0,
         image_url: URL.createObjectURL(file),
@@ -235,6 +234,7 @@ export const api = {
           { field_type: "MRP", value: "₹ 249.00", confidence: 0.88 },
           { field_type: "Packaged by", value: "Demo Consumer Products Pvt. Ltd.", confidence: 0.86 },
         ],
+        ...(productId ? { product_id: productId } : {}),
       };
       demoScans.unshift(scan);
       return { id };
