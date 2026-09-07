@@ -9,7 +9,20 @@ import { ErrorState, formatDate, LoadingState, PageFrame, PageIntro } from "@/co
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_protected/scans/$id")({
-  head: () => ({ meta: [{ title: "Scan Result · Legal Metrology" }, { name: "description", content: "Detailed packaged product label compliance inspection result." }, { property: "og:title", content: "Scan Result · Legal Metrology" }, { property: "og:description", content: "Detailed packaged product label compliance inspection result." }] }),
+  head: () => ({
+    meta: [
+      { title: "Scan Result · Legal Metrology" },
+      {
+        name: "description",
+        content: "Detailed packaged product label compliance inspection result.",
+      },
+      { property: "og:title", content: "Scan Result · Legal Metrology" },
+      {
+        property: "og:description",
+        content: "Detailed packaged product label compliance inspection result.",
+      },
+    ],
+  }),
   component: ScanResultPage,
 });
 
@@ -18,17 +31,207 @@ function ScanResultPage() {
   const [scan, setScan] = useState<ScanDetail | null>(null);
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(false);
-  useEffect(() => { api.getScan(id).then(setScan).catch((cause) => setError(cause instanceof ApiError ? cause.message : "Unable to load scan result.")); }, [id]);
-  async function download() { setDownloading(true); try { const blob = await api.downloadReport(id); const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `legal-metrology-report-${id}.pdf`; anchor.click(); URL.revokeObjectURL(url); } catch (cause) { setError(cause instanceof ApiError ? cause.message : "Unable to download the report."); } finally { setDownloading(false); } }
-  if (!scan && !error) return <PageFrame><LoadingState label="Loading scan result" /></PageFrame>;
-  if (error || !scan) return <PageFrame><ErrorState message={error || "Scan not found."} /></PageFrame>;
+  useEffect(() => {
+    api
+      .getScan(id)
+      .then(setScan)
+      .catch((cause) =>
+        setError(cause instanceof ApiError ? cause.message : "Unable to load scan result."),
+      );
+  }, [id]);
+  async function download() {
+    setDownloading(true);
+    try {
+      const blob = await api.downloadReport(id);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `legal-metrology-report-${id}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : "Unable to download the report.");
+    } finally {
+      setDownloading(false);
+    }
+  }
+  if (!scan && !error)
+    return (
+      <PageFrame>
+        <LoadingState label="Loading scan result" />
+      </PageFrame>
+    );
+  if (error || !scan)
+    return (
+      <PageFrame>
+        <ErrorState message={error || "Scan not found."} />
+      </PageFrame>
+    );
   const violations = scan.violations ?? [];
   const compliant = violations.length === 0 && !/non[- ]?compliant|fail/i.test(scan.status ?? "");
   const image = getMediaUrl(scan.image_url ?? scan.uploaded_image_url ?? scan.image);
-  return <PageFrame><div className="mb-6"><Link to="/history" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"><ArrowLeft className="size-3.5" /> Back to history</Link></div><PageIntro eyebrow={`Inspection result · #${id}`} title={compliant ? <>Label is<br /><span className="text-success">compliant.</span></> : <>Label is<br /><span className="text-critical">non-compliant.</span></>} description={`Submitted ${formatDate(scan.created_at ?? scan.date)}${scan.product_id ? ` · Product ${scan.product_id}` : ""}`} action={<Button variant="outline" onClick={download} disabled={downloading}><Download /> {downloading ? "Preparing PDF …" : "Download PDF report"}</Button>} />
-    <div className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_1.3fr]"><Card className="overflow-hidden rounded-none border-line-strong bg-surface shadow-none"><div className="flex min-h-[320px] items-center justify-center bg-surface-deep p-5">{image ? <img src={image} alt="Uploaded product label" className="max-h-[360px] w-full object-contain" /> : <div className="text-center text-muted-foreground"><ExternalLink className="mx-auto size-7" /><p className="mt-3 text-xs uppercase tracking-[0.14em]">No image returned</p></div>}</div><CardContent className="border-t border-border p-5"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Overall status</p><div className="mt-3">{compliant ? <span className="text-2xl font-bold text-success">COMPLIANT</span> : <span className="text-2xl font-bold text-critical">NON-COMPLIANT</span>}</div></CardContent></Card>
-      <div className="space-y-6"><section><div className="mb-3 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange">OCR output</p><h2 className="display-heading mt-1 text-2xl font-bold uppercase">Extracted fields</h2></div><span className="text-xs text-muted-foreground">{scan.extracted_fields?.length ?? 0} fields</span></div><div className="grid gap-3 sm:grid-cols-2">{(scan.extracted_fields ?? []).map((field, index) => <Card key={`${field.field_type ?? field.type}-${index}`} className="rounded-none border-line-strong bg-surface shadow-none"><CardContent className="p-4"><div className="flex items-center justify-between gap-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{field.field_type ?? field.type ?? "Field"}</p><span className="text-[10px] font-bold text-success">{field.confidence == null ? "—" : `${Math.round(Number(field.confidence) * (Number(field.confidence) <= 1 ? 100 : 1))}%`}</span></div><p className="mt-3 text-sm font-semibold">{field.value ?? "—"}</p></CardContent></Card>)}</div></section><section><div className="mb-3 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange">Rule findings</p><h2 className="display-heading mt-1 text-2xl font-bold uppercase">Violations</h2></div><span className="text-xs text-muted-foreground">{violations.length} found</span></div><div className="overflow-hidden border border-line-strong bg-surface"><table className="w-full text-left text-sm"><thead className="bg-surface-deep text-[10px] uppercase tracking-[0.14em] text-muted-foreground"><tr><th className="px-4 py-3 font-bold">Rule</th><th className="px-4 py-3 font-bold">Field</th><th className="px-4 py-3 font-bold">Description</th><th className="px-4 py-3 font-bold">Severity</th></tr></thead><tbody>{violations.map((violation, index) => <tr key={`${violation.rule_ref}-${index}`} className="border-t border-border"><td className="px-4 py-4 font-bold">{violation.rule_ref ?? "—"}</td><td className="px-4 py-4 text-muted-foreground">{violation.field_type ?? "—"}</td><td className="px-4 py-4">{violation.description ?? "—"}</td><td className="px-4 py-4"><Severity value={violation.severity} /></td></tr>)}</tbody></table>{violations.length === 0 ? <p className="p-8 text-center text-sm text-success">No violations found for this label.</p> : null}</div></section></div></div>
-  </PageFrame>;
+  return (
+    <PageFrame>
+      <div className="mb-6">
+        <Link
+          to="/history"
+          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" /> Back to history
+        </Link>
+      </div>
+      <PageIntro
+        eyebrow={`Inspection result · #${id}`}
+        title={
+          compliant ? (
+            <>
+              Label is
+              <br />
+              <span className="text-success">compliant.</span>
+            </>
+          ) : (
+            <>
+              Label is
+              <br />
+              <span className="text-critical">non-compliant.</span>
+            </>
+          )
+        }
+        description={`Submitted ${formatDate(scan.created_at ?? scan.date)}${scan.product_id ? ` · Product ${scan.product_id}` : ""}`}
+        action={
+          <Button variant="outline" onClick={download} disabled={downloading}>
+            <Download /> {downloading ? "Preparing PDF …" : "Download PDF report"}
+          </Button>
+        }
+      />
+      <div className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
+        <Card className="overflow-hidden rounded-none border-line-strong bg-surface shadow-none">
+          <div className="flex min-h-[320px] items-center justify-center bg-surface-deep p-5">
+            {image ? (
+              <img
+                src={image}
+                alt="Uploaded product label"
+                className="max-h-[360px] w-full object-contain"
+              />
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <ExternalLink className="mx-auto size-7" />
+                <p className="mt-3 text-xs uppercase tracking-[0.14em]">No image returned</p>
+              </div>
+            )}
+          </div>
+          <CardContent className="border-t border-border p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Overall status
+            </p>
+            <div className="mt-3">
+              {compliant ? (
+                <span className="text-2xl font-bold text-success">COMPLIANT</span>
+              ) : (
+                <span className="text-2xl font-bold text-critical">NON-COMPLIANT</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <div className="space-y-6">
+          <section>
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange">
+                  OCR output
+                </p>
+                <h2 className="display-heading mt-1 text-2xl font-bold uppercase">
+                  Extracted fields
+                </h2>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {scan.extracted_fields?.length ?? 0} fields
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(scan.extracted_fields ?? []).map((field, index) => (
+                <Card
+                  key={`${field.field_type ?? field.type}-${index}`}
+                  className="rounded-none border-line-strong bg-surface shadow-none"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        {field.field_type ?? field.type ?? "Field"}
+                      </p>
+                      <span className="text-[10px] font-bold text-success">
+                        {field.confidence == null
+                          ? "—"
+                          : `${Math.round(Number(field.confidence) * (Number(field.confidence) <= 1 ? 100 : 1))}%`}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold">{field.value ?? "—"}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+          <section>
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange">
+                  Rule findings
+                </p>
+                <h2 className="display-heading mt-1 text-2xl font-bold uppercase">Violations</h2>
+              </div>
+              <span className="text-xs text-muted-foreground">{violations.length} found</span>
+            </div>
+            <div className="overflow-hidden border border-line-strong bg-surface">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-surface-deep text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-bold">Rule</th>
+                    <th className="px-4 py-3 font-bold">Field</th>
+                    <th className="px-4 py-3 font-bold">Description</th>
+                    <th className="px-4 py-3 font-bold">Severity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {violations.map((violation, index) => (
+                    <tr key={`${violation.rule_ref}-${index}`} className="border-t border-border">
+                      <td className="px-4 py-4 font-bold">{violation.rule_ref ?? "—"}</td>
+                      <td className="px-4 py-4 text-muted-foreground">
+                        {violation.field_type ?? "—"}
+                      </td>
+                      <td className="px-4 py-4">{violation.description ?? "—"}</td>
+                      <td className="px-4 py-4">
+                        <Severity value={violation.severity} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {violations.length === 0 ? (
+                <p className="p-8 text-center text-sm text-success">
+                  No violations found for this label.
+                </p>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      </div>
+    </PageFrame>
+  );
 }
 
-function Severity({ value }: { value?: string }) { const normalized = (value ?? "minor").toLowerCase(); const tone = normalized === "critical" ? "bg-critical/15 text-critical" : normalized === "major" ? "bg-major/15 text-major" : "bg-warning/20 text-warning"; return <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${tone}`}>{value ?? "Minor"}</span>; }
+function Severity({ value }: { value?: string | undefined }) {
+  const normalized = (value ?? "minor").toLowerCase();
+  const tone =
+    normalized === "critical"
+      ? "bg-critical/15 text-critical"
+      : normalized === "major"
+        ? "bg-major/15 text-major"
+        : "bg-warning/20 text-warning";
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${tone}`}
+    >
+      {value ?? "Minor"}
+    </span>
+  );
+}
