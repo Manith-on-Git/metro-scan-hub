@@ -347,7 +347,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("lm-language", next);
   }
 
-  const value = useMemo(() => ({ language, setLanguage, t: (key: TranslationKey) => translations[language][key] ?? translations.en[key], languageLabels }), [language]);
+  const value = useMemo(
+    () => ({
+      language,
+      setLanguage,
+      t: (key: TranslationKey) => translations[language][key] ?? translations.en[key] ?? key,
+      languageLabels,
+    }),
+    [language],
+  );
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
